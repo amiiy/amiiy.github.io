@@ -1,0 +1,74 @@
+<!doctype html><html><head>
+<meta charset=utf-8>
+<meta http-equiv=x-ua-compatible content="IE=edge"><title>Troubleshooting HTTP with tcpdump in Docker - Amiy!</title><meta name=viewport content="width=device-width,initial-scale=1">
+<meta name=description content="Today I decided to focus on something I take for granted, that possibly many other backend developers may not have ever used to help troubleshoot problems: tcpdump and wireshark. Coming from a systems and networking background into a software development role, I have used capture for troubleshooting networked applications I have developed. Today I will try to explain how you can setup a development environment that will allow you to use these tools to troubleshoot your application.">
+<meta property="og:image" content>
+<meta property="og:title" content="Troubleshooting HTTP with tcpdump in Docker">
+<meta property="og:description" content="Today I decided to focus on something I take for granted, that possibly many other backend developers may not have ever used to help troubleshoot problems: tcpdump and wireshark. Coming from a systems and networking background into a software development role, I have used capture for troubleshooting networked applications I have developed. Today I will try to explain how you can setup a development environment that will allow you to use these tools to troubleshoot your application.">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://amiy.me/posts/troubleshooting-http-with-tcpdump-in-docker/"><meta property="article:section" content="posts">
+<meta property="article:published_time" content="2018-08-30T08:00:00+00:00">
+<meta property="article:modified_time" content="2018-08-30T08:00:00+00:00">
+<meta name=twitter:card content="summary">
+<meta name=twitter:title content="Troubleshooting HTTP with tcpdump in Docker">
+<meta name=twitter:description content="Today I decided to focus on something I take for granted, that possibly many other backend developers may not have ever used to help troubleshoot problems: tcpdump and wireshark. Coming from a systems and networking background into a software development role, I have used capture for troubleshooting networked applications I have developed. Today I will try to explain how you can setup a development environment that will allow you to use these tools to troubleshoot your application.">
+<link href=https://amiy.me/css/fonts.b685ac6f654695232de7b82a9143a46f9e049c8e3af3a21d9737b01f4be211d1.css rel=stylesheet>
+<link rel=stylesheet type=text/css media=screen href=https://amiy.me/css/main.40ca3a860425083862b7ebd55447caec5c4384573f0cb098b8d06a91e8dace2e.css>
+</head><body>
+<div class=content><header>
+<div class=main>
+<a href=https://amiy.me>Amiy!</a>
+</div><nav>
+<a href=/>Home</a>
+<a href=/posts>All posts</a>
+<a href=/about>About</a>
+<a href=/tags>Tags</a>
+</nav></header><main>
+<article>
+<div class=title>
+<h1 class=title>Troubleshooting HTTP with tcpdump in Docker</h1><div class=meta>Posted on Aug 30, 2018</div></div><section class=body>
+<p>Today I decided to focus on something I take for granted, that possibly many
+other backend developers may not have ever used to help troubleshoot problems:
+tcpdump and wireshark. Coming from a systems and networking background into
+a software development role, I have used capture for troubleshooting networked
+applications I have developed. Today I will try to explain how you can setup
+a development environment that will allow you to use these tools to troubleshoot
+your application.</p><h3 id=tcpdump>tcpdump</h3><p>tcpdump is a command-line packet analyzer, which will dump traffic on a network.
+tcpdump takes in, amongst other things, a network interface, and a <a href=http://biot.com/capstats/bpf.html>BPF
+expression</a>. BPF stands for Berkeley Packet Filter and is a language
+specifically designed for expression of network traffic as filters.</p><h3 id=docker>Docker</h3><p>Docker is a project that automates the deployment of applications inside of Linux
+Containers. Part of the automation revolves around creation of a bridged network
+interface which all of the containers running are attached to. This is handy
+in that we are able to use tcpdump on the <code>docker0</code> interface and watch all the
+network traffic that is going from container to container, as well as host
+to container.</p><h3 id=wireshark>wireshark</h3><p>Wireshark is a very popular GUI network protocol analyzer which allows you to
+view and analyze a wide variety of protocols.</p><h2 id=setup>Setup</h2><p>In order to start watching all the container network traffic you can run the
+following command on the container host:</p><pre tabindex=0><code>
+sudo tcpdump -i docker0 tcp port 80 -w test.pcap
+</code></pre><p>What this command is doing is performing a capture on the <code>docker0</code> interface
+and filtering with the BPF expression <code>tcp port 80</code> which filters just the
+HTTP protocol traffic from the result set and then writes the Packet CAPture
+data to a file called test.pcap.</p><p>Pcap is a pretty simple file format, <a href=http://www.kroosec.com/2012/10/a-look-at-pcap-file-format.html>explained in depth here</a>, but high
+level contains a global header, and headers followed by corresponding data chunks.
+The Pcap headers contain information about endianess, timestamp in seconds and
+microseconds, the size of the following data and the length of the captured
+packet. The data section following the header is the raw data bytes captured.</p><h2 id=analysis>Analysis</h2><p>Now that we are running our tcp command to capture the port 80 traffic on the
+<code>docker0</code> bridged network interface, we perform some action in the web
+application that we want to troubleshoot. When we perform the task we wish
+to troubleshoot, we stop tcpdump by signalling and interupt, and our pcap
+file is written to disk.</p><p>Note: If you have an entire stack of services running, using this process
+will actually capture ALL the requests/responses throughout your whole stack
+in the order written to the network interface. This is extremely helpful
+to figure out problems with many services running. Very helpful.</p><p>Now that we have a capture we can open said capture file in a wireshark so we
+can easily follow the http conversation:</p><figure><img src=/img/wireshark1.png><figcaption>
+<h4>Wireshark view of capture</h4></figcaption></figure><p>By selecting &ldquo;Analyze > Follow > HTTP Stream&rdquo; in the menus you will be able to just
+see the particular HTTP text protocol for this HTTP conversation which would
+look like this:</p><figure><img src=/img/wireshark2.png><figcaption>
+<h4>Wireshark view of capture</h4></figcaption></figure><p>This is very helpful in figuring out &ldquo;who said what&rdquo; in a more complicated
+containerized development environment.</p></section><div class=post-tags>
+<nav class="nav tags">
+<ul class=tags>
+<li><a href=/tags/http>http</a></li><li><a href=/tags/tcpdump>tcpdump</a></li><li><a href=/tags/docker>docker</a></li></ul></nav></div></article></main><footer>
+<div style=display:flex></div><div class=footer-info>
+2022 <a href=https://github.com/athul/archie>Archie Theme</a> | Built with <a href=https://gohugo.io>Hugo</a>
+</div></footer></div></body></html>

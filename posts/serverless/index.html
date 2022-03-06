@@ -1,11 +1,11 @@
 <!doctype html><html><head>
 <meta charset=utf-8>
-<meta http-equiv=x-ua-compatible content="IE=edge"><title>Serverless - Amiy!</title><meta name=viewport content="width=device-width,initial-scale=1">
+<meta http-equiv=x-ua-compatible content="IE=edge"><title>Serverless #1 - Amiy!</title><meta name=viewport content="width=device-width,initial-scale=1">
 <meta name=description content="Recently I got a chance to work on a ETL pipeline that import users data from another company into our platform. they had a legacy Microsoft SQL Server running from 2009 !
 the propose to send the user data with Azure Data Pipeline. I suggested to implement a webhook and send it over HTTPS but thier team doesn&rsquo;t seem to willing to do that so :(
 So basically we need to pull the data in a time interval (1 min) in order to find out is there new user record to import or not.">
 <meta property="og:image" content>
-<meta property="og:title" content="Serverless">
+<meta property="og:title" content="Serverless #1">
 <meta property="og:description" content="Recently I got a chance to work on a ETL pipeline that import users data from another company into our platform. they had a legacy Microsoft SQL Server running from 2009 !
 the propose to send the user data with Azure Data Pipeline. I suggested to implement a webhook and send it over HTTPS but thier team doesn&rsquo;t seem to willing to do that so :(
 So basically we need to pull the data in a time interval (1 min) in order to find out is there new user record to import or not.">
@@ -14,7 +14,7 @@ So basically we need to pull the data in a time interval (1 min) in order to fin
 <meta property="article:published_time" content="2022-03-06T18:16:54+04:00">
 <meta property="article:modified_time" content="2022-03-06T18:16:54+04:00">
 <meta name=twitter:card content="summary">
-<meta name=twitter:title content="Serverless">
+<meta name=twitter:title content="Serverless #1">
 <meta name=twitter:description content="Recently I got a chance to work on a ETL pipeline that import users data from another company into our platform. they had a legacy Microsoft SQL Server running from 2009 !
 the propose to send the user data with Azure Data Pipeline. I suggested to implement a webhook and send it over HTTPS but thier team doesn&rsquo;t seem to willing to do that so :(
 So basically we need to pull the data in a time interval (1 min) in order to find out is there new user record to import or not.">
@@ -32,7 +32,7 @@ So basically we need to pull the data in a time interval (1 min) in order to fin
 </nav></header><main>
 <article>
 <div class=title>
-<h1 class=title>Serverless</h1><div class=meta>Posted on Mar 6, 2022</div></div><section class=body>
+<h1 class=title>Serverless #1</h1><div class=meta>Posted on Mar 6, 2022</div></div><section class=body>
 <p>Recently I got a chance to work on a ETL pipeline that import users data from another company into our platform. they had a legacy Microsoft SQL Server running from 2009 !</p><p>the propose to send the user data with Azure Data Pipeline. I suggested to implement a webhook and send it over HTTPS but thier team doesn&rsquo;t seem to willing to do that so :(</p><p>So basically we need to pull the data in a time interval (1 min) in order to find out is there new user record to import or not.</p><p>I choose to implelemnt this using <a href=https://www.serverless.com/>Serverless Framework</a></p><p>Here I want to show how we can implement a aws step function using serverless framework.</p><p>so this is the senario:
 we are going to create a pipeline to get the user ETH wallet address and get the list of ERC721 and ERC20 token transction and more!</p><h2 id=install-serverless-framework-and-packages>install serverless framework and packages</h2><p>first we need to install serverless framework:</p><p><code>npm install -g serverless</code></p><p>serverless framework has a alias <code>sls</code> also a good cli which help you to bootstrap your setup using pre-defined templates. here we are going to use simple aws nodejs function:</p><p><code>sls create -t aws-nodejs</code></p><p>this command will create <code>handler.js</code> which contain our functions and also <code>serverless.yml</code> that contain all our configuration for this stack.</p><p>In order to use aws step functions we need to install aws step function pluging for serverless:</p><p><code>npm install --save-dev serverless-step-functions</code></p><p>then we need to add this pluging in our <code>serverless.yml</code> file:</p><pre tabindex=0><code>plugins:
   - serverless-step-functions

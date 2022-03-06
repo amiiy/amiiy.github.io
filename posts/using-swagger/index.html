@@ -1,0 +1,142 @@
+<!doctype html><html><head>
+<meta charset=utf-8>
+<meta http-equiv=x-ua-compatible content="IE=edge"><title>Using Swagger to Develop APIs - Amiy!</title><meta name=viewport content="width=device-width,initial-scale=1">
+<meta name=description content="Recently, I started taking a real look into using swagger to document REST APIs. I feel like REST APIs can be very hard to convey from a producer to a consumer, and there is often a bit of confusion as to how the response will be returned, or what is required in a request to an endpoint. This article attempts to explain how swagger works from a schema standpoint, what one can do with swagger to improve a REST API.">
+<meta property="og:image" content>
+<meta property="og:title" content="Using Swagger to Develop APIs">
+<meta property="og:description" content="Recently, I started taking a real look into using swagger to document REST APIs. I feel like REST APIs can be very hard to convey from a producer to a consumer, and there is often a bit of confusion as to how the response will be returned, or what is required in a request to an endpoint. This article attempts to explain how swagger works from a schema standpoint, what one can do with swagger to improve a REST API.">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://amiy.me/posts/using-swagger/"><meta property="article:section" content="posts">
+<meta property="article:published_time" content="2019-02-28T08:00:00+00:00">
+<meta property="article:modified_time" content="2019-02-28T08:00:00+00:00">
+<meta name=twitter:card content="summary">
+<meta name=twitter:title content="Using Swagger to Develop APIs">
+<meta name=twitter:description content="Recently, I started taking a real look into using swagger to document REST APIs. I feel like REST APIs can be very hard to convey from a producer to a consumer, and there is often a bit of confusion as to how the response will be returned, or what is required in a request to an endpoint. This article attempts to explain how swagger works from a schema standpoint, what one can do with swagger to improve a REST API.">
+<link href=https://amiy.me/css/fonts.b685ac6f654695232de7b82a9143a46f9e049c8e3af3a21d9737b01f4be211d1.css rel=stylesheet>
+<link rel=stylesheet type=text/css media=screen href=https://amiy.me/css/main.40ca3a860425083862b7ebd55447caec5c4384573f0cb098b8d06a91e8dace2e.css>
+</head><body>
+<div class=content><header>
+<div class=main>
+<a href=https://amiy.me>Amiy!</a>
+</div><nav>
+<a href=/>Home</a>
+<a href=/posts>All posts</a>
+<a href=/about>About</a>
+<a href=/tags>Tags</a>
+</nav></header><main>
+<article>
+<div class=title>
+<h1 class=title>Using Swagger to Develop APIs</h1><div class=meta>Posted on Feb 28, 2019</div></div><section class=body>
+<p>Recently, I started taking a real look into using <a href=http://swagger.io/>swagger</a> to document
+REST APIs. I feel like REST APIs can be very hard to convey from a producer to
+a consumer, and there is often a bit of confusion as to how the response will be
+returned, or what is required in a request to an endpoint. This article
+attempts to explain how swagger works from a schema standpoint, what one can do
+with swagger to improve a REST API.</p><h2 id=what-is-swagger>What is Swagger</h2><p>Swagger is an Open API description standard, which allows for clear
+communication about what is needed to interact with an API. The <a href=http://swagger.io/specification/>swagger
+specification</a> allows for one to completely describe a REST API
+in a way that others can consume in an automated fashion, and which will allow
+for ultimately code generation of an API client.</p><p>Below is a contrived example of an API described with swagger:</p><pre tabindex=0><code>
+swagger: &#39;2.0&#39;
+info:
+  title: Music Store API
+  description: &gt;
+    This is a Music Store API which is made up just to
+    explain a little bit about how swagger works, and
+    what you are able to do with it.
+  version: 0.0.1
+
+basePath: /v1
+schemes:
+  - https
+consumes:
+  - application/json
+produces:
+  - application/json
+
+paths:
+  /purchase:
+    post:
+      parameters:
+        -
+          name: purchaseOrder
+          in: body
+          required: true
+          schema:
+            $ref: &#34;#/definitions/PurchaseOrderRequest&#34;
+      responses:
+        200:
+          description: &gt;
+            Successful Purchase Response, this is the OK
+            response
+          schema:
+            $ref: &#34;#/definitions/PurchaseSuccessResponse&#34;
+
+definitions:
+  PurchaseSuccessResponse:
+    type: object
+    required:
+      - success
+      - message
+    properties:
+      success:
+        type: boolean
+      message:
+        type: string
+      confirmation:
+        type: string
+        format: uuid
+      sent_to:
+        type: string
+        format: email
+      cost:
+        type: integer
+        format: int64
+        minimum: 0
+
+  PurchaseOrderRequest:
+    type: object
+    required:
+      - sku
+      - payment_id
+    properties:
+      playlist:
+        type: string
+        enum:
+          - &#34;workout&#34;
+          - &#34;home&#34;
+          - &#34;car&#34;
+      sku:
+        type: string
+        pattern: /\d{4}-\d{10}/
+        minLength: 15
+        maxLength: 15
+      payment_id:
+        type: string
+        format: uuid
+</code></pre><p>What is all of this doing? Well, it is describing what this one endpoint API is
+requiring, and committing to. We can see this API has a base path of &ldquo;/v1&rdquo; so
+all routes enumerated will begin with &ldquo;/v1&rdquo;. This api clearly also produces and
+consumes json, and is only accessible via https.</p><p>Then we get to the paths. This API has one path /v1/purchase which is an HTTP
+POST operation, which takes in an object referenced by PurchaseOrderRequest. This
+API has one possible response, a 200 HTTP status code response, which returns an
+object referenced by PurchaseSuccessResponse.</p><p>Getting into the object structures, in the definitions section, you can see the
+PurchaseOrderRequest object is an object with two required fields, sku and payment_id.
+You can also see it has another field which is a string called playlist which can only
+be of value &ldquo;workout&rdquo; &ldquo;home&rdquo; or &ldquo;car&rdquo;.</p><p>Swagger is very flexible in how you describe an API.</p><h2 id=great-now-what>Great, now what?</h2><p>Well, swagger is more than just a documentation tool. There is a lot of tooling
+around the OpenAPI format which allows you to do some neat things.</p><p><a href=http://editor.swagger.io/#!/>Swagger Editor</a> is a tool which will help you visualize an API
+which has been developed in swagger. This tool will also allow you to create
+api requests to an actual instance if you were so inclined to see what the API
+will do based on certain inputs.</p><p><a href=https://github.com/swagger-api/swagger-codegen>Swagger Codegen</a> is a tool which will actually dump out working
+code in a number of different languages which are able to integrate with the API
+you generated the code from. This is extremely handy if you want to offer your
+customers an SDK of your APIs, or if you want to perform some automated testing
+of your API based on the swagger definitions.</p><p>Armed with these tools and this specification, you will be able to more clearly
+communicate with your integrators, and have ready made clients for internal
+integrations.</p></section><div class=post-tags>
+<nav class="nav tags">
+<ul class=tags>
+<li><a href=/tags/api>api</a></li><li><a href=/tags/rest>rest</a></li><li><a href=/tags/swagger>swagger</a></li></ul></nav></div></article></main><footer>
+<div style=display:flex></div><div class=footer-info>
+2022 <a href=https://github.com/athul/archie>Archie Theme</a> | Built with <a href=https://gohugo.io>Hugo</a>
+</div></footer></div></body></html>
