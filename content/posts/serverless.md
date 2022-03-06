@@ -28,3 +28,79 @@ serverless framework has a alias `sls` also a good cli which help you to bootstr
 `sls create -t aws-nodejs`
 
 this command will create `handler.js` which contain our functions and also `serverless.yml` that contain all our configuration for this stack.
+
+
+In order to use aws step functions we need to install aws step function pluging for serverless:
+
+`npm install --save-dev serverless-step-functions`
+
+then we need to add this pluging in our `serverless.yml` file:
+``` 
+plugins:
+  - serverless-step-functions
+  ```
+
+now we can define our state machine as follow:
+
+```
+
+
+service: serverless-step-function-example
+
+frameworkVersion: '3'
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+  region: us-east-2
+
+plugins:
+  - serverless-step-functions
+
+functions:
+  checkWallet:
+    handler: handler.checkWallet
+  getNormalTransactions:
+    handler: handler.getNormalTransactions
+
+stepFunctions:
+  stateMachines:
+    processWalletFlow:
+      name: processWalletFlow
+      definition:
+        StartAt: checkWallet
+        States:
+          checkWallet:
+            Type: Task
+            Resource:
+              Fn::GetAtt: [checkWallet, Arn]
+            Next: getNormalTransactions
+          getNormalTransactions:
+            Type: Task
+            Resource:
+              Fn::GetAtt: [getNormalTransactions, Arn]
+            End: true
+
+```
+here we defined our `service` name. we have a `function` block that we will use as reference in the stateMachine definition. our step function name is `processWallet` that contain two state for now. its start at `checkWallet` state/function that is referenced to the function above and its Type is Task and the Next state is the `getNormalTransactions` which we mentioned that this is the last state for now. so lets define these functions in our `handler.js` file:
+
+```
+module.exports.checkWallet = async(event) =>{
+return 'noramal transactions'
+}
+
+module.exports.getNormalTransactions = async(event) =>{
+  return 'normal transactions'
+}
+```
+
+now we can deploy our function to the aws. make sure you have installed `aws cli` and configured the credentials in the `~/.aws/credentials` so simply execute `sls deploy` and it will trigger the aws CloudFormation and will create the desired stacks.
+
+this is the first part you can read more about this on the documentations below:
+
+[serverless](https://www.serverless.com/category/guides-and-tutorials)
+
+
+[serverless step functions plugin](https://www.serverless.com/category/guides-and-tutorials)
+
+[github repo](https://github.com/amiiy/serverless-step-function-example)
