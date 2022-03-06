@@ -34,7 +34,53 @@ So basically we need to pull the data in a time interval (1 min) in order to fin
 <div class=title>
 <h1 class=title>Serverless</h1><div class=meta>Posted on Mar 6, 2022</div></div><section class=body>
 <p>Recently I got a chance to work on a ETL pipeline that import users data from another company into our platform. they had a legacy Microsoft SQL Server running from 2009 !</p><p>the propose to send the user data with Azure Data Pipeline. I suggested to implement a webhook and send it over HTTPS but thier team doesn&rsquo;t seem to willing to do that so :(</p><p>So basically we need to pull the data in a time interval (1 min) in order to find out is there new user record to import or not.</p><p>I choose to implelemnt this using <a href=https://www.serverless.com/>Serverless Framework</a></p><p>Here I want to show how we can implement a aws step function using serverless framework.</p><p>so this is the senario:
-we are going to create a pipeline to get the user ETH wallet address and get the list of ERC721 and ERC20 token transction and more!</p><h2 id=install-serverless-framework-and-packages>install serverless framework and packages</h2><p>first we need to install serverless framework:</p><p><code>npm install -g serverless</code></p><p>serverless framework has a alias <code>sls</code> also a good cli which help you to bootstrap your setup using pre-defined templates. here we are going to use simple aws nodejs function:</p><p><code>sls create -t aws-nodejs</code></p><p>this command will create <code>handler.js</code> which contain our functions and also <code>serverless.yml</code> that contain all our configuration for this stack.</p></section><div class=post-tags>
+we are going to create a pipeline to get the user ETH wallet address and get the list of ERC721 and ERC20 token transction and more!</p><h2 id=install-serverless-framework-and-packages>install serverless framework and packages</h2><p>first we need to install serverless framework:</p><p><code>npm install -g serverless</code></p><p>serverless framework has a alias <code>sls</code> also a good cli which help you to bootstrap your setup using pre-defined templates. here we are going to use simple aws nodejs function:</p><p><code>sls create -t aws-nodejs</code></p><p>this command will create <code>handler.js</code> which contain our functions and also <code>serverless.yml</code> that contain all our configuration for this stack.</p><p>In order to use aws step functions we need to install aws step function pluging for serverless:</p><p><code>npm install --save-dev serverless-step-functions</code></p><p>then we need to add this pluging in our <code>serverless.yml</code> file:</p><pre tabindex=0><code>plugins:
+  - serverless-step-functions
+</code></pre><p>now we can define our state machine as follow:</p><pre tabindex=0><code>
+
+service: serverless-step-function-example
+
+frameworkVersion: &#39;3&#39;
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+  region: us-east-2
+
+plugins:
+  - serverless-step-functions
+
+functions:
+  checkWallet:
+    handler: handler.checkWallet
+  getNormalTransactions:
+    handler: handler.getNormalTransactions
+
+stepFunctions:
+  stateMachines:
+    processWalletFlow:
+      name: processWalletFlow
+      definition:
+        StartAt: checkWallet
+        States:
+          checkWallet:
+            Type: Task
+            Resource:
+              Fn::GetAtt: [checkWallet, Arn]
+            Next: getNormalTransactions
+          getNormalTransactions:
+            Type: Task
+            Resource:
+              Fn::GetAtt: [getNormalTransactions, Arn]
+            End: true
+</code></pre><p>here we defined our <code>service</code> name. we have a <code>function</code> block that we will use as reference in the stateMachine definition. our step function name is <code>processWallet</code> that contain two state for now. its start at <code>checkWallet</code> state/function that is referenced to the function above and its Type is Task and the Next state is the <code>getNormalTransactions</code> which we mentioned that this is the last state for now. so lets define these functions in our <code>handler.js</code> file:</p><pre tabindex=0><code>module.exports.checkWallet = async(event) =&gt;{
+return &#39;noramal transactions&#39;
+}
+
+module.exports.getNormalTransactions = async(event) =&gt;{
+  return &#39;normal transactions&#39;
+}
+</code></pre><p>now we can deploy our function to the aws. make sure you have installed <code>aws cli</code> and configured the credentials in the <code>~/.aws/credentials</code> so simply execute <code>sls deploy</code> and it will trigger the aws CloudFormation and will create the desired stacks.</p><p>this is the first part you can read more about this on the documentations below:</p><p><a href=https://www.serverless.com/category/guides-and-tutorials>serverless</a></p><p><a href=https://www.serverless.com/category/guides-and-tutorials>serverless step functions plugin</a></p><p><a href=https://github.com/amiiy/serverless-step-function-example>github repo</a></p></section><div class=post-tags>
 </div></article></main><footer>
 <div style=display:flex></div><div class=footer-info>
 2022 <a href=https://github.com/athul/archie>Archie Theme</a> | Built with <a href=https://gohugo.io>Hugo</a>
