@@ -1,0 +1,29 @@
+baseURL = 'https://amiiy.github.io/'
+languageCode = 'en-us'
+title = 'Amiy!'
+theme = "archie"
+[taxonomies]
+    tag = "tag"
+    category = "categories"
+    mood = "moods"
+
+
+[[menu.main]]
+name = "Home"
+url = "/"
+weight = 1
+
+[[menu.main]]
+name = "All posts"
+url = "/posts"
+weight = 2
+
+[[menu.main]]
+name = "About"
+url = "/about"
+weight = 3
+
+[[menu.main]]
+name = "Tags"
+url = "/tags"
+weight = 4
