@@ -1,4 +1,4 @@
-baseURL = 'http://amiiy.github.io/'
+baseURL = 'https://amiy.me'
 languageCode = 'en-us'
 title = 'Amiy!'
 theme = "archie"
